@@ -1,7 +1,4 @@
-package oldworldinsdustry.common.blocks;
-
-import java.util.HashMap;
-import java.util.Map;
+package oldworldindustry.common.blocks;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -11,66 +8,81 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import oldworldinsdustry.common.tileentitys.TileEntityAxle;
+import net.minecraftforge.common.ForgeDirection;
+import oldworldindustry.common.tileentitys.TileEntityAxle;
+import oldworldindustry.common.tileentitys.TileWoodAxle;
 
-public class BlockAxle extends BlockContainer implements IConnectable
+public class BlockAxle extends BlockContainer
 {
-	private boolean connected;
-	private int storedPower = 0;//is transfered to the other block on tick
-	
-	protected BlockAxle(int id)
+	public BlockAxle(int id)
 	{
-		super(id, Material.wood);
-		this.setHardness(2F);
-		this.setResistance(25F);
+		super(id, Material.iron);
+		this.setHardness(1F);
 		this.setCreativeTab(CreativeTabs.tabMisc);
-		this.setStepSound(soundWoodFootstep);
 		this.setUnlocalizedName("OWIAxle");
-		//this.setBlockBounds(par1, par2, par3, par4, par5, par6); needs model to be set
+	}
+
+	@Override
+	public void onNeighborBlockChange(World world, int x, int y, int z, int blockId)
+	{
 	}
 
 	@Override
 	public TileEntity createNewTileEntity(World world)
 	{
-		return new TileEntityAxle();
+		return new TileWoodAxle();
 	}
-	
+
 	@Override
-	public boolean isOpaqueCube() {
+	public boolean isOpaqueCube()
+	{
 		return false;
 	}
 
 	@Override
-	public boolean renderAsNormalBlock() {
+	public boolean renderAsNormalBlock()
+	{
 		return false;
 	}
 
 	@Override
-	public int getRenderType() {
+	public int getRenderType()
+	{
 		return -1;
 	}
-	
+
 	@Override
-	public void onBlockPlacedBy(World world, int x, int y, int z,EntityLiving entityliving, ItemStack itemStack) {
+	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLiving entityliving, ItemStack itemStack)
+	{
 		int blockSet = world.getBlockMetadata(x, y, z) / 4;
-		int direction = MathHelper
-				.floor_double((double) (entityliving.rotationYaw * 4.0F / 360.0F) + 2.5D) & 3;
+		int direction = MathHelper.floor_double((double) (entityliving.rotationYaw * 4.0F / 360.0F) + 2.5D) & 3;
 		int newMeta = (blockSet * 4) + direction;
 		world.setBlockMetadataWithNotify(x, y, z, newMeta, 0);
+		rotateBlock(world,x,y,z,ForgeDirection.UNKNOWN);//direction not used
 	}
 
 	@Override
-	public boolean isConnected()
+	public boolean rotateBlock(World world, int x, int y, int z, ForgeDirection axis)
 	{
-		return connected;
-	}
-
-	@Override
-	public boolean canConnect()
-	{
-		// TODO Auto-generated method stub
+		TileEntity tile = world.getBlockTileEntity(x, y, z);
+		if (tile instanceof TileEntityAxle)
+		{
+			((TileEntityAxle) tile).switchOrientation();
+			return true;
+		}
 		return false;
 	}
-		
+
+	@Override
+	public void breakBlock(World world, int x, int y, int z, int par5, int par6)
+	{
+		TileEntityAxle axle = ((TileEntityAxle) world.getBlockTileEntity(x, y, z));
+
+		if (axle != null)
+		{
+			axle.delete();
+		}
+		super.breakBlock(world, x, y, z, par5, par6);
+	}
 	
 }
