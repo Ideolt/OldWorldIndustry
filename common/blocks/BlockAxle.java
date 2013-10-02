@@ -14,12 +14,15 @@ import oldworldindustry.common.tileentitys.TileEntityAxle;
 
 public class BlockAxle extends BlockContainer
 {
-	public BlockAxle(int id)
+	private static int axleLevel;
+	
+	public BlockAxle(int id,int level)
 	{
 		super(id, Material.iron);
 		this.setHardness(1F);
 		this.setCreativeTab(CreativeTabs.tabMisc);
 		this.setUnlocalizedName("OWIAxle");
+		axleLevel = level;
 	}
 
 	@Override
@@ -30,7 +33,16 @@ public class BlockAxle extends BlockContainer
 	@Override
 	public TileEntity createNewTileEntity(World world)
 	{
-		return new TileEntityAxle(1, 8, 1, 8);
+		switch(axleLevel){
+			case 1:
+				return new TileEntityAxle(1, 8, 1, 8,axleLevel);
+			case 2:
+				return new TileEntityAxle(1, 16, 1, 8,axleLevel);
+			case 3://should be lvl 5
+				return new TileEntityAxle(1, 256, 1, 8,axleLevel);
+		}
+		
+		return null;
 	}
 
 	@Override
@@ -88,7 +100,15 @@ public class BlockAxle extends BlockContainer
 	@Override
 	public void registerIcons(IconRegister par1IconRegister)
 	{
-	         this.blockIcon = par1IconRegister.registerIcon("OWI:gearWood");
+		switch (axleLevel)
+		{
+			case 1:
+				this.blockIcon = par1IconRegister.registerIcon("OWI:axle_wood");
+			case 2:
+				this.blockIcon = par1IconRegister.registerIcon("OWI:axle_stone");
+			case 3:
+				this.blockIcon = par1IconRegister.registerIcon("OWI:axle_iron");
+		}
 	}
 
 }

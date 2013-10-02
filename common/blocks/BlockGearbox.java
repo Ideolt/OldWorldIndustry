@@ -10,17 +10,19 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import oldworldindustry.common.tileentitys.TileEntityGearbox;
-import oldworldindustry.common.tileentitys.TileWoodGearbox;
 import buildcraft.api.power.IPowerReceptor;
 
 public class BlockGearbox extends BlockContainer 
 {
-	public BlockGearbox(int id)
+	public static int gearboxLevel;
+	
+	public BlockGearbox(int id,int level)
 	{
 		super(id, Material.iron);
 		this.setHardness(1F);
 		this.setCreativeTab(CreativeTabs.tabMisc);
 		this.setUnlocalizedName("OWIGearbox");
+		gearboxLevel = level;
 	}
 
 	@Override
@@ -31,7 +33,16 @@ public class BlockGearbox extends BlockContainer
 	@Override
 	public TileEntity createNewTileEntity(World world)
 	{
-		return new TileWoodGearbox();
+		switch(gearboxLevel){
+			case 1:
+				return new TileEntityGearbox(1, 8, 1, 1000, gearboxLevel);
+			case 2:
+				return new TileEntityGearbox(1, 16, 1, 10000, gearboxLevel);
+			case 3:
+				return new TileEntityGearbox(1, 256, 1, 100000, gearboxLevel);
+		}
+		
+		return null;
 	}
 
 	@Override

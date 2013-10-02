@@ -13,14 +13,18 @@ import buildcraft.api.power.PowerProvider;
 public class TileEntityAxle extends TileEntity implements IPowerReceptor
 {
 	IPowerProvider provider;
+	private static int axleLevel;
+	
 
 	public ForgeDirection orientation = ForgeDirection.UP; // default
 
-	public TileEntityAxle(int minReceived, int maxReceived, int activationEnergy, int storage)
+	public TileEntityAxle(int minReceived, int maxReceived, int activationEnergy, int storage,int level)
 	{
 		provider = PowerFramework.currentFramework.createPowerProvider();
 		provider.configurePowerPerdition(1, 100);
 		provider.configure(1, minReceived, maxReceived, activationEnergy, storage);
+		axleLevel = level;
+		
 	}
 
 	public void switchOrientation()

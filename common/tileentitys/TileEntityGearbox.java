@@ -24,14 +24,17 @@ public class TileEntityGearbox extends TileEntity implements IPowerReceptor
 	private int[] transmit = {0,1,2,3,4,5,6};
 	
 	private float maxOut;
-		
+	
+	private static int gearboxLevel;
+	
 	public ForgeDirection orientation = ForgeDirection.UP; // default
 
-	public TileEntityGearbox(int minReceived,int maxReceived,int activationEnergy,int storage)
+	public TileEntityGearbox(int minReceived,int maxReceived,int activationEnergy,int storage,int level)
 	{
 		provider = PowerFramework.currentFramework.createPowerProvider();
 		provider.configure(1, minReceived, maxReceived, activationEnergy, storage);
 		provider.configurePowerPerdition(1, 1);
+		gearboxLevel = level;
 	}
 
 	@Override
