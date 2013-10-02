@@ -2,6 +2,7 @@ package oldworldindustry.common.blocks;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.item.ItemStack;
@@ -10,7 +11,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeDirection;
 import oldworldindustry.common.tileentitys.TileEntityAxle;
-import oldworldindustry.common.tileentitys.TileWoodAxle;
 
 public class BlockAxle extends BlockContainer
 {
@@ -30,7 +30,7 @@ public class BlockAxle extends BlockContainer
 	@Override
 	public TileEntity createNewTileEntity(World world)
 	{
-		return new TileWoodAxle();
+		return new TileEntityAxle(1, 8, 1, 8);
 	}
 
 	@Override
@@ -85,4 +85,10 @@ public class BlockAxle extends BlockContainer
 		super.breakBlock(world, x, y, z, par5, par6);
 	}
 	
+	@Override
+	public void registerIcons(IconRegister par1IconRegister)
+	{
+	         this.blockIcon = par1IconRegister.registerIcon("OWI:gearWood");
+	}
+
 }

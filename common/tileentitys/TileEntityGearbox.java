@@ -1,5 +1,8 @@
 package oldworldindustry.common.tileentitys;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraftforge.common.ForgeDirection;
@@ -11,26 +14,36 @@ import buildcraft.api.power.PowerProvider;
 
 public class TileEntityGearbox extends TileEntity implements IPowerReceptor
 {
-	private float energyStored;
 	IPowerProvider provider;
-
+	
+	private List providers = new ArrayList();
+	private List receivers = new ArrayList();
+	
+	private int[] out = {50,50,50,50,50,50,0};
+	private int[] in = {50,50,50,50,50,50,0};
+	private int[] transmit = {0,1,2,3,4,5,6};
+	
+	private float maxOut;
+		
 	public ForgeDirection orientation = ForgeDirection.UP; // default
 
-	public TileEntityGearbox()
+	public TileEntityGearbox(int minReceived,int maxReceived,int activationEnergy,int storage)
 	{
 		provider = PowerFramework.currentFramework.createPowerProvider();
-		provider.configure(50, 100, 100, 60, 1000);
+		provider.configure(1, minReceived, maxReceived, activationEnergy, storage);
 		provider.configurePowerPerdition(1, 1);
 	}
 
 	@Override
 	public void readFromNBT(NBTTagCompound nbtTag)
 	{
+		provider.readFromNBT(nbtTag);
 	}
 
 	@Override
 	public void writeToNBT(NBTTagCompound nbtTag)
 	{
+		provider.writeToNBT(nbtTag);
 	}
 
 	public void switchOrientation()
@@ -54,6 +67,47 @@ public class TileEntityGearbox extends TileEntity implements IPowerReceptor
 		}
 	}
 
+	private void takeEnergy(IPowerReceptor Eprovider,ForgeDirection from)
+	{
+		if(provider.getEnergyStored() < provider.getMaxEnergyStored() || transmit[from.ordinal()] < 8)
+		{
+			transmit[from.ordinal()]++;
+			return;
+		}
+		else
+		{
+			float energy = Eprovider.getPowerProvider().useEnergy(1, in[from.ordinal()], true);
+			provider.receiveEnergy(energy, from);
+			
+			transmit[from.ordinal()] = 0;
+		}
+		
+	}
+	
+	private void giveEnergy(IPowerReceptor receiver,ForgeDirection to)
+	{
+		if(provider.getEnergyStored() <= 0 || transmit[to.ordinal()] < 8)
+		{
+			transmit[to.ordinal()]++;
+			return;
+		}
+		else
+		{
+			float request = receiver.powerRequest(to.getOpposite());
+			
+			if(request > out[to.ordinal()])
+				request = out[to.ordinal()];
+			else if(request > maxOut)
+				request = maxOut;
+			
+			float energy = provider.useEnergy(0, request, true);
+			receiver.getPowerProvider().receiveEnergy(energy, to.getOpposite());
+			
+			transmit[to.ordinal()] = 0;
+		}
+			
+	}
+	
 	public boolean isPoweredTile(TileEntity tile)
 	{
 		if (tile instanceof IPowerReceptor)
@@ -91,45 +145,67 @@ public class TileEntityGearbox extends TileEntity implements IPowerReceptor
 	@Override
 	public void updateEntity()
 	{
-		for (int i = 0; i <= 5; i++)
+		int i;
+		TileEntity tile;
+		Position pos;
+		
+		for (i = 0; i <= 5; i++)
 		{
-			IPowerReceptor receiver;
-			
-			Position pos = new Position(xCoord, yCoord, zCoord, ForgeDirection.getOrientation(i));
+			pos = new Position(xCoord, yCoord, zCoord, ForgeDirection.getOrientation(i));
 			pos.moveForwards(1);
 
-			TileEntity tile = worldObj.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+			tile = worldObj.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
 			
 			if (isPoweredTile(tile))
 			{
-				receiver = (IPowerReceptor) tile; 
+				if(((IPowerReceptor) tile).powerRequest(ForgeDirection.getOrientation(i).getOpposite()) == 0)
+					providers.add(ForgeDirection.getOrientation(i));
+				else
+					receivers.add(ForgeDirection.getOrientation(i));
 			}
 			else
 			{
 				continue;
 			}
-			
-			if(receiver.powerRequest(ForgeDirection.getOrientation(i)) == 0)
-			{
-				float energy = ((IPowerReceptor) tile).getPowerProvider().useEnergy(10, 50, true);
-				provider.receiveEnergy(energy, ForgeDirection.getOrientation(i));
-			}
-			else
-			{
-				float request = receiver.powerRequest(ForgeDirection.getOrientation(i));
-				
-				if(request+receiver.getPowerProvider().getEnergyStored() >= receiver.getPowerProvider().getMaxEnergyStored())
-					request = receiver.getPowerProvider().getMaxEnergyStored() - request+receiver.getPowerProvider().getEnergyStored();
-
-		        float energy = provider.useEnergy(0.0F, request, true);
-		        receiver.getPowerProvider().receiveEnergy(energy, ForgeDirection.getOrientation(i));
-			}			
 		}
+		
+		if(providers.size()+receivers.size() == 0)
+			return;
+		
+		for(i = 0;i <= providers.size()-1;i++)
+		{
+			pos = new Position(xCoord,yCoord,zCoord, (ForgeDirection) providers.get(i));
+			pos.moveForwards(1);
+			
+			tile =  worldObj.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+			
+			takeEnergy((IPowerReceptor) tile,(ForgeDirection) providers.get(i));
+			
+		}
+			
+		if(receivers.size() > 0)
+			maxOut = provider.getEnergyStored()/receivers.size();
+		else
+			return;
+		
+		for(i = 0;i <= providers.size()-1;i++)
+		{
+			pos = new Position(xCoord,yCoord,zCoord, (ForgeDirection) providers.get(i));
+			pos.moveForwards(1);
+			tile =  worldObj.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
+			
+			giveEnergy((IPowerReceptor) tile,(ForgeDirection) providers.get(i));
+			
+		}
+				
 	}
 
 	@Override
 	public int powerRequest(ForgeDirection from)
 	{
-		return provider.getMaxEnergyReceived();
+		if(provider.getEnergyStored() < provider.getMaxEnergyStored())
+			return provider.getMaxEnergyReceived();
+		else
+			return 0;
 	}
 }

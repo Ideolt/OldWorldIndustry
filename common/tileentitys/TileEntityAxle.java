@@ -12,24 +12,15 @@ import buildcraft.api.power.PowerProvider;
 
 public class TileEntityAxle extends TileEntity implements IPowerReceptor
 {
-	private int latency;
-	private int minEnergyReceived;
-	private int maxEnergyReceived;
-	private int maxEnergyStored;
-	private int activationEnergy;
-	private float energyStored;
-	private int loss;
-	private int lossRegularyti;
-
 	IPowerProvider provider;
 
 	public ForgeDirection orientation = ForgeDirection.UP; // default
 
-	public TileEntityAxle()
+	public TileEntityAxle(int minReceived, int maxReceived, int activationEnergy, int storage)
 	{
 		provider = PowerFramework.currentFramework.createPowerProvider();
 		provider.configurePowerPerdition(1, 100);
-		provider.configure(0, 10, 50, 1, 50);
+		provider.configure(1, minReceived, maxReceived, activationEnergy, storage);
 	}
 
 	public void switchOrientation()
@@ -75,28 +66,35 @@ public class TileEntityAxle extends TileEntity implements IPowerReceptor
 		return provider;
 	}
 
+	private void takeEnergy(IPowerReceptor Eprovider,ForgeDirection from)
+	{
+		if(provider.getEnergyStored() < provider.getMaxEnergyStored())
+			return;
+		else
+		{
+			float energy = Eprovider.getPowerProvider().useEnergy(provider.getMinEnergyReceived(), provider.getMaxEnergyReceived(), true);
+			provider.receiveEnergy(energy, from);
+		}
+		
+	}
+	
+	private void giveEnergy(IPowerReceptor receiver,ForgeDirection to)
+	{
+		if(provider.getEnergyStored() <= 0)
+			return;
+		else
+		{
+			float request = receiver.powerRequest(to.getOpposite());
+			
+			float energy = provider.useEnergy(0, request, true);
+			receiver.getPowerProvider().receiveEnergy(energy, to.getOpposite());
+		}
+			
+	}
+	
 	@Override
 	public void doWork()
 	{
-
-		for (int i = 0; i <= 5; i++)
-		{
-			Position pos = new Position(xCoord, yCoord, zCoord, ForgeDirection.getOrientation(i));
-			pos.moveForwards(1);
-
-			TileEntity tile = worldObj.getBlockTileEntity((int) pos.x, (int) pos.y, (int) pos.z);
-
-			if (isPoweredTile(tile))
-			{
-				((IPowerReceptor) tile).doWork();// tile should take energy
-			}
-
-			if (isPoweredTile(tile) && ((IPowerReceptor)tile).getPowerProvider().isPowerSource(ForgeDirection.getOrientation(i)))
-			{
-				((IPowerReceptor) tile).getPowerProvider().useEnergy(10, 50, true);
-			}
-		}
-
 	}
 	
 	@Override
@@ -114,25 +112,23 @@ public class TileEntityAxle extends TileEntity implements IPowerReceptor
 		{
 			receiver = (IPowerReceptor)tile;
 			
+			if(tile instanceof TileEntityAxle)
+			{
+				if(!(((TileEntityAxle) tile).orientation == orientation) || !(((TileEntityAxle) tile).orientation == orientation.getOpposite()))
+					return;
+			}
+			
 			if(receiver.powerRequest(orientation.getOpposite()) == 0)
 			{
-				energy = ((IPowerReceptor) tile).getPowerProvider().useEnergy(10, 50, true);
-				provider.receiveEnergy(energy, orientation);
+				takeEnergy(receiver,orientation.getOpposite());
 			}
 			else
 			{
-				float request = receiver.powerRequest(orientation);
-				
-				if(request+receiver.getPowerProvider().getEnergyStored() >= receiver.getPowerProvider().getMaxEnergyStored())
-					request = receiver.getPowerProvider().getMaxEnergyStored() - request+receiver.getPowerProvider().getEnergyStored();
-
-		        energy = provider.useEnergy(0.0F, request, true);
-		        receiver.getPowerProvider().receiveEnergy(energy, orientation.getOpposite());
+				giveEnergy(receiver,orientation);
 			}
 		}
 		
-		pos = new Position(xCoord,yCoord,zCoord,orientation.getOpposite());
-		pos.moveBackwards(1);
+		pos.moveBackwards(2);
 		
 		tile = worldObj.getBlockTileEntity((int)pos.x, (int)pos.y, (int)pos.z);
 		
@@ -140,20 +136,19 @@ public class TileEntityAxle extends TileEntity implements IPowerReceptor
 		{
 			receiver = (IPowerReceptor)tile;
 			
-			if(receiver.powerRequest(orientation) == 0)
+			if(tile instanceof TileEntityAxle)
 			{
-				energy = ((IPowerReceptor) tile).getPowerProvider().useEnergy(10, 50, true);
-				provider.receiveEnergy(energy, orientation.getOpposite());
+				if(!(((TileEntityAxle) tile).orientation == orientation||((TileEntityAxle) tile).orientation == orientation.getOpposite()))
+					return;
+			}
+			
+			if(receiver.powerRequest(orientation.getOpposite()) == 0)
+			{
+				takeEnergy(receiver,orientation.getOpposite());
 			}
 			else
 			{
-				float request = receiver.powerRequest(orientation.getOpposite());
-				
-				if(request+receiver.getPowerProvider().getEnergyStored() >= receiver.getPowerProvider().getMaxEnergyStored())
-					request = receiver.getPowerProvider().getMaxEnergyStored() - request+receiver.getPowerProvider().getEnergyStored();
-
-		        energy = provider.useEnergy(0.0F, request, true);
-		        receiver.getPowerProvider().receiveEnergy(energy, orientation);
+				giveEnergy(receiver,orientation);
 			}
 		}
 		
