@@ -2,6 +2,7 @@ package oldworldindustry.common.blocks;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.texture.IconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.item.ItemStack;
@@ -77,5 +78,19 @@ public class BlockGearbox extends BlockContainer
 			gearbox.delete();
 		}
 		super.breakBlock(world, x, y, z, par5, par6);
+	}
+	
+	@Override
+	public void registerIcons(IconRegister par1IconRegister)
+	{
+		switch (gearboxLevel)
+		{
+			case 1:
+				this.blockIcon = par1IconRegister.registerIcon("OWI:gearbox_wd2wd");
+			case 2:
+				this.blockIcon = par1IconRegister.registerIcon("OWI:gearbox_wd2sn");
+			case 3:
+				this.blockIcon = par1IconRegister.registerIcon("OWI:gearbox_wd2ir");
+		}
 	}
 }

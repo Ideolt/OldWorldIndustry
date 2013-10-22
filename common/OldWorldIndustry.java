@@ -6,7 +6,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.src.ModLoader;
 import oldworldindustry.common.blocks.BlockAxle;
 import oldworldindustry.common.blocks.BlockGearbox;
+import oldworldindustry.common.blocks.BlockWindmill;
 import oldworldindustry.common.client.renderers.TileEntityAxleRenderer;
+import oldworldindustry.common.items.BasicItem;
 import oldworldindustry.common.tileentitys.TileEntityAxle;
 import oldworldindustry.common.tileentitys.TileEntityGearbox;
 import oldworldindustry.common.utils.ModUtils;
@@ -25,7 +27,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
 
 @Mod(modid = "OWI", name = "OldWorldIndustry", version = "0.1")
-@NetworkMod(clientSideRequired = false, serverSideRequired = false)
+@NetworkMod(clientSideRequired = true, serverSideRequired = false)
 public class OldWorldIndustry
 {
 	@Instance("OWI")
@@ -37,9 +39,15 @@ public class OldWorldIndustry
 	public static Block woodAxle;
 	public static Block stoneAxle;
 	public static Block ironAxle;
+	
 	public static Block woodGearbox;
 	public static Block stoneGearbox;
 	public static Block ironGearbox;
+	
+	public static Item windmillHub;
+	public static Item windmillBlade;
+	
+	public static Block woodWindmill;
 	
 	@PreInit
     public void preInit(FMLPreInitializationEvent event)
@@ -51,11 +59,12 @@ public class OldWorldIndustry
 	public void load(FMLInitializationEvent event)
 	{
 		addBlocks();
-		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityAxle.class, new TileEntityAxleRenderer());		
+		addItems();	
 		addRecipes();
 		addNames();
-		registerItems();
 		registerBlocks();
+		registerItems();
+		bindRenderers();
 	}
 	
 	@PostInit
@@ -63,6 +72,27 @@ public class OldWorldIndustry
     {
      System.out.println("[OWI Online] Have Fun!");
     }
+	
+	public void addBlocks()
+	{
+		woodAxle = new BlockAxle(Config.LEVEL_RANGE_START,1);
+		stoneAxle = new BlockAxle(Config.LEVEL_RANGE_START+1,2);
+		ironAxle = new BlockAxle(Config.LEVEL_RANGE_START+2,3);
+		
+		woodGearbox = new BlockGearbox(Config.LEVEL_RANGE_START+3,1);
+		stoneGearbox = new BlockGearbox(Config.LEVEL_RANGE_START+4,2);
+		ironGearbox = new BlockGearbox(Config.LEVEL_RANGE_START+5,3);
+		
+		woodWindmill = new BlockWindmill(Config.LEVEL_RANGE_START+11,1);
+	}
+	
+	// !!!            last used ID levelRange + 10			!!!
+		
+	public void addItems()
+	{
+		windmillHub = new BasicItem(Config.LEVEL_RANGE_START+9).setUnlocalizedName("windmill_hub");
+		windmillBlade = new BasicItem(Config.LEVEL_RANGE_START+10).setUnlocalizedName("windmill_blade");
+	}
 	
 	public void addRecipes()
 	{	
@@ -76,6 +106,12 @@ public class OldWorldIndustry
 		ModLoader.addRecipe(new ItemStack(stoneGearbox,1) , new Object[] { "WGW", "GGG", "WGW", 'G', new ItemStack(ModUtils.stoneGear), 'W', Block.wood });
 		ModLoader.addRecipe(new ItemStack(ironGearbox,1) , new Object[] { "WGW", "GGG", "WGW", 'G', new ItemStack(ModUtils.ironGear), 'W', Block.wood });
 		
+		ModLoader.addRecipe(new ItemStack(windmillBlade,1), new Object[] {"WS ","wS ","WS ", 'W',Block.wood,'w',Block.cloth,'S',Item.stick });
+		ModLoader.addRecipe(new ItemStack(windmillHub,1), new Object[] {"sSs","SGS","sSs" ,'s',Item.silk,'S',Item.stick,'G', new ItemStack(ModUtils.woodGear)});
+		
+		ModLoader.addRecipe(new ItemStack(woodWindmill,1), new Object[] {" B ","BHB"," B ", 'B' ,new ItemStack(windmillBlade), 'H' ,new ItemStack(windmillHub) });
+		
+		
 		if(!ModUtils.buildCraftOn)
 		{
 			ModLoader.addRecipe(new ItemStack(ModUtils.woodGear,1) , new Object[] { " S ", "S S", " S ", 'S', Item.stick });
@@ -84,18 +120,6 @@ public class OldWorldIndustry
 		}
 	}
 	
-	public void addBlocks()
-	{
-		woodAxle = new BlockAxle(Config.LEVEL_RANGE_START,1);
-		stoneAxle = new BlockAxle(Config.LEVEL_RANGE_START+1,2);
-		ironAxle = new BlockAxle(Config.LEVEL_RANGE_START+2,3);
-		
-		woodGearbox = new BlockGearbox(Config.LEVEL_RANGE_START+3,1);
-		stoneGearbox = new BlockGearbox(Config.LEVEL_RANGE_START+4,2);
-		ironGearbox = new BlockGearbox(Config.LEVEL_RANGE_START+5,3);
-	}
-	
-	// !!!            last used ID levelRange + 8			!!!
 	
 	public void addNames()
 	{
@@ -106,6 +130,11 @@ public class OldWorldIndustry
 		LanguageRegistry.addName(woodGearbox, "Wooden Gearbox");
 		LanguageRegistry.addName(stoneGearbox, "Stone Gearbox");
 		LanguageRegistry.addName(ironGearbox, "Iron Gearbox");
+		
+		LanguageRegistry.addName(windmillBlade, "Windmill Blade");
+		LanguageRegistry.addName(windmillHub, "Windmill Hub");
+		
+		LanguageRegistry.addName(woodWindmill, "Wood Windmill");
 		
 		if(!ModUtils.buildCraftOn)
 		{
@@ -125,18 +154,28 @@ public class OldWorldIndustry
 		GameRegistry.registerBlock(stoneGearbox, "Stone Gearbox");
 		GameRegistry.registerBlock(ironGearbox, "Iron Gearbox");
 		
+		GameRegistry.registerBlock(woodWindmill, "Wood Windmill");
+		
 		GameRegistry.registerTileEntity(oldworldindustry.common.tileentitys.TileEntityGearbox.class, "Gearbox Tile");
 		GameRegistry.registerTileEntity(oldworldindustry.common.tileentitys.TileEntityAxle.class, "Axle Tile");
-		
+		GameRegistry.registerTileEntity(oldworldindustry.common.tileentitys.TileEntityWindmill.class, "Windmill Tile");
 	}
 	
 	public void registerItems()
 	{
+		GameRegistry.registerItem(windmillBlade, "Windmill Blade");
+		GameRegistry.registerItem(windmillHub,"Windmill HuB");
+		
 		if(!ModUtils.buildCraftOn)
 		{
 			GameRegistry.registerItem(ModUtils.woodGear, "Wooden Gear");
 			GameRegistry.registerItem(ModUtils.stoneGear, "Stone Gear");
 			GameRegistry.registerItem(ModUtils.ironGear, "Iron Gear");
-		}
+		}		
+	}
+	
+	public void bindRenderers()
+	{
+		ClientRegistry.bindTileEntitySpecialRenderer(TileEntityAxle.class, new TileEntityAxleRenderer());	
 	}
 }
