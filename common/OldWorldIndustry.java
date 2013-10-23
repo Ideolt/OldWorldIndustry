@@ -44,10 +44,18 @@ public class OldWorldIndustry
 	public static Block stoneGearbox;
 	public static Block ironGearbox;
 	
+	public static Block woodWindmill;
+	
 	public static Item windmillHub;
 	public static Item windmillBlade;
 	
-	public static Block woodWindmill;
+	public static Item governor;
+	public static Item differential;
+	public static Item redstoneBuffer;
+	public static Item oiler;
+	public static Item discriminator;
+	public static Item passThrough;
+	
 	
 	@PreInit
     public void preInit(FMLPreInitializationEvent event)
@@ -86,12 +94,20 @@ public class OldWorldIndustry
 		woodWindmill = new BlockWindmill(Config.LEVEL_RANGE_START+11,1);
 	}
 	
-	// !!!            last used ID levelRange + 10			!!!
+	// !!!            last used ID levelRange + 17			!!!
 		
 	public void addItems()
 	{
-		windmillHub = new BasicItem(Config.LEVEL_RANGE_START+9).setUnlocalizedName("windmill_hub");
-		windmillBlade = new BasicItem(Config.LEVEL_RANGE_START+10).setUnlocalizedName("windmill_blade");
+		windmillHub = new BasicItem(Config.LEVEL_RANGE_START+9,"windmill_hub",BasicItem.Function.ITEM);
+		windmillBlade = new BasicItem(Config.LEVEL_RANGE_START+10,"windmill_blade",BasicItem.Function.ITEM);
+		
+		governor = new BasicItem(Config.LEVEL_RANGE_START+12,"governor",BasicItem.Function.GOVERNOR);
+		differential = new BasicItem(Config.LEVEL_RANGE_START+13,"differential",BasicItem.Function.DIFFERENTIAL);
+		redstoneBuffer = new BasicItem(Config.LEVEL_RANGE_START+14,"gear_redstone",BasicItem.Function.REDSTONEBUFFER);
+		oiler = new BasicItem(Config.LEVEL_RANGE_START+15,"governor",BasicItem.Function.OILER);//needs icon
+		discriminator = new BasicItem(Config.LEVEL_RANGE_START+16,"governor",BasicItem.Function.DICRIMINATOR);//needs icon
+		passThrough = new BasicItem(Config.LEVEL_RANGE_START+17,"governor",BasicItem.Function.PASSTHROUGH);//needs icon
+
 	}
 	
 	public void addRecipes()

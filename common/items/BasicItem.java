@@ -10,19 +10,27 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class BasicItem extends Item
 {
-	private String iconName;
-
-	public BasicItem(int i)
+	public enum Function
 	{
-		super(i);
-		setCreativeTab(CreativeTabs.tabMisc);
+		GOVERNOR,DIFFERENTIAL,REDSTONEBUFFER,
+		OILER,DICRIMINATOR,PASSTHROUGH,ITEM
 	}
-
-	@Override
-	public Item setUnlocalizedName(String par1Str)
+	
+	private String iconName;
+	private static Function function;
+	
+	public BasicItem(int id,String name,Function iFunction)
 	{
-		iconName = par1Str;
-		return super.setUnlocalizedName(par1Str);
+		super(id);
+		setCreativeTab(CreativeTabs.tabMisc);
+		iconName = name;
+		super.setUnlocalizedName(name);
+		function = iFunction;		
+	}
+	
+	public static Function getFunction()
+	{
+		return function;
 	}
 
 	@Override
